@@ -11,7 +11,7 @@ A simple and efficient web app built with **Streamlit** for **data transformatio
 Create a web app that helps users **transform, clean, and visualize data (CSV/Excel)**.
 
 ### **Key Features:**
-✔ Upload and preview **CSV or Excel** files  
-✔ Perform basic **data cleaning** (remove duplicates, fill missing values)  
-✔ **Visualize data** with charts  
+ - Upload and preview **CSV or Excel** files  
+ - Perform basic **data cleaning** (remove duplicates, fill missing values)  
+ - **Visualize data** with charts  
 ---
