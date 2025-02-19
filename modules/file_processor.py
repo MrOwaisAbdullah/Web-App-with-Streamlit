@@ -8,7 +8,6 @@ def sanitize_key(file_name: str) -> str:
     # Replace any non-alphanumeric character with an underscore
     return re.sub(r'\W+', '_', file_name)
 
-
 def read_file(file):
     file_ext = os.path.splitext(file.name)[-1].lower()
     try:
@@ -18,8 +17,6 @@ def read_file(file):
             df = pd.read_excel(file)
         elif file_ext == ".json":
             df = pd.read_json(file)
-        elif file_ext == ".xml":
-            df = pd.read_xml(file)
         else:
             st.error(f"Unsupported file type: {file_ext}")
             return None
@@ -80,8 +77,8 @@ def process_file(file):
 
     # Conversion Options
     st.subheader("**🔄 Conversion Options:**")
-    conversion_type = st.radio(f"Convert {file.name} to:", ["CSV", "Excel"], key=f"conv_{sanitize_key(file.name)}")
-    if st.button(f"Convert {file.name}", key=f"conv_btn_{file.name}"):
+    conversion_type = st.radio(f"Convert {file.name} to:", ["CSV", "Excel", "JSON"], key=f"conv_{sanitize_key(file.name)}")
+    if st.button(f"Convert {file.name}", key=f"conv_btn_{sanitize_key(file.name)}"):
         buffer = BytesIO()
         if conversion_type == "CSV":
             df.to_csv(buffer, index=False)
@@ -91,6 +88,11 @@ def process_file(file):
             df.to_excel(buffer, index=False)
             new_file_name = file.name.replace(file_ext, ".xlsx")
             mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        elif conversion_type == "JSON":
+            json_str = df.to_json(orient='records', lines=True)
+            buffer.write(json_str.encode('utf-8'))
+            new_file_name = file.name.replace(file_ext, ".json")
+            mime_type = "application/json"
         else:
             st.error("Unsupported conversion type")
             return

@@ -7,7 +7,7 @@ import re
 # App configuration
 st.set_page_config(page_title="AI Data Alchemist", page_icon="⚗️", layout="wide")
 st.title("⚗️ AI Data Alchemist - Clean, Transform & Visualize Your Data")
-st.write("Transform your files between CSV, Excel, JSON, and XML formats with built-in cleaning, visualization, and AI-powered suggestions.")
+st.write("Transform your files between CSV, Excel, and JSON formats with built-in cleaning, visualization, and AI-powered suggestions.")
 
 def sanitize_key(file_name: str) -> str:
     # Replace any non-alphanumeric character with an underscore
@@ -15,8 +15,8 @@ def sanitize_key(file_name: str) -> str:
 
 # File uploader with multiple file support
 uploaded_files = st.file_uploader(
-    "Upload your file (CSV, Excel, JSON, or XML)",
-    type=["csv", "xlsx", "json", "xml"],
+    "Upload your file (CSV, Excel, JSON)",
+    type=["csv", "xlsx", "json"],
     accept_multiple_files=True
 )
 
