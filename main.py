@@ -139,4 +139,4 @@ with st.sidebar:
     st.markdown("### Developed by:")
     st.markdown("**Name:** Owais Abdullah")
     st.markdown("**Email:** mrowaisabdullah@gmail.com")
-    st.markdown("**LinkedIn:** [mrowaisabdullah](https://www.linkedin.com/in/mrowaisabdullah/)")
+    st.markdown("**LinkedIn:** [@mrowaisabdullah](https://www.linkedin.com/in/mrowaisabdullah/)")
