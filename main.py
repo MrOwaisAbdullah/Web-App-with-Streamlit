@@ -39,12 +39,12 @@ if uploaded_files:
                         else:
                             suggestions = "No data summary available."
                     
-                        st.write(suggestions)
+                        st.expander("AI Cleaning Suggestions", expanded=True).write(suggestions)
 
     else:
         file = list(unique_files)[0]
         df = process_file(file)
-        if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{file.name}") and st.session_state.get(f"summary_{file.name}"):
+        if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
             with st.spinner("Generating suggestions...", show_time=True):
                 suggestions = get_ai_suggestions(st.session_state[f"summary_{file.name}"])
-                st.expander("AI Cleaning Suggestions").write(suggestions)
+                st.expander("AI Cleaning Suggestions", expanded=True).write(suggestions)
