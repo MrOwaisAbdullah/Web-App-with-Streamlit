@@ -1,16 +1,32 @@
 import os
 import streamlit as st
-from modules.file_processor import process_file
+from modules.file_processor import process_file, read_file
 from modules.ai_integration import get_ai_suggestions
 import re
 
-# App configuration
-st.set_page_config(page_title="AI Data Alchemist", page_icon="⚗️", layout="wide")
-st.title("⚗️ AI Data Alchemist - Clean, Transform & Visualize Your Data")
-st.write("Transform your files between CSV, Excel, and JSON formats with built-in cleaning, visualization, and AI-powered suggestions.")
 
+
+# Page Configuration
+st.set_page_config(page_title="AI Data Alchemist", page_icon="⚗️", layout="wide")
+st.markdown(
+    "<h1 style='text-align: center;'>⚗️ AI Data Alchemist \n\n Clean, Transform & Visualize Your Data</h1>",
+    unsafe_allow_html=True
+)
+st.markdown(
+    "<p style='text-align: center;'>Transform your files between CSV, Excel, and JSON formats with built-in cleaning, visualization, and AI-powered suggestions.</p>",
+    unsafe_allow_html=True
+)
+
+# Initialize Session State for Renaming and Removed Files
+if "rename_mapping" not in st.session_state or not isinstance(st.session_state["rename_mapping"], dict):
+    st.session_state["rename_mapping"] = {}
+if "removed_files" not in st.session_state or not isinstance(st.session_state["removed_files"], dict):
+    st.session_state["removed_files"] = {}
+if "rename_mode" not in st.session_state or not isinstance(st.session_state["rename_mode"], dict):
+    st.session_state["rename_mode"] = {}
+
+# Function to Replace any non-alphanumeric character with an underscore
 def sanitize_key(file_name: str) -> str:
-    # Replace any non-alphanumeric character with an underscore
     return re.sub(r'\W+', '_', file_name)
 
 # File uploader with multiple file support
@@ -21,34 +37,102 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
-    # Filter duplicate files by name
-    unique_files = list({file.name: file for file in uploaded_files}.values())
+    # Filter out removed files using session_state
+    unique_files = list({
+        file.name: file 
+        for file in uploaded_files 
+        if not st.session_state["removed_files"].get(file.name, False)
+    }.values())
     
-    # If multiple files, create tabs, otherwise process directly
-    if len(unique_files) > 1:
-        tabs = st.tabs([file.name for file in unique_files])
+    # Use rename mapping from session_state (default to original name)
+    rename_mapping = st.session_state.get("rename_mapping", {})
+
+    if not unique_files:
+        st.info("No files available for processing. Please upload new files or check your removal selections.")
+    elif len(unique_files) > 1:
+        tabs = st.tabs([rename_mapping.get(file.name, file.name) for file in unique_files])
         for tab, file in zip(tabs, unique_files):
             with tab:
-                # Get AI suggestions if a summary is available
-                if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
-                    with st.spinner("Generating suggestions...", show_time=True):
-                        data_summary = st.session_state.get(f"summary_{file.name}", "")
-                        if data_summary:
-                            suggestions = get_ai_suggestions(data_summary)
-                        else:
-                            suggestions = "No data summary available."
+                # --- Step 1: Compute Summary (without printing full details) ---
+                df_temp = read_file(file)
+                if df_temp is None:
+                    st.error("Error processing file.")
+                else:
+                    # Save summary if not already set
+                    if not st.session_state.get(f"summary_{file.name}"):
+                        st.session_state[f"summary_{file.name}"] = df_temp.describe().to_string()
                     
+                    # --- Step 2: Display AI Suggestion Button at the Top ---
+                    if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
+                        with st.spinner("Generating suggestions...", show_time=True):
+                            data_summary = st.session_state.get(f"summary_{file.name}", "")
+                            if data_summary:
+                                suggestions = get_ai_suggestions(data_summary)
+                            else:
+                                suggestions = "No data summary available."
                         st.expander("AI Cleaning Suggestions", expanded=True).write(suggestions)
-                df = process_file(file)
-
-
-
+                    
+                    # --- Step 3: Process the File Fully ---
+                    process_file(file, rename_mapping.get(file.name, file.name))
     else:
-        file = list(unique_files)[0]
-        if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
-            with st.spinner("Generating suggestions...", show_time=True):
-                suggestions = get_ai_suggestions(st.session_state[f"summary_{file.name}"])
+        file = unique_files[0]
+        df_temp = read_file(file)
+        if df_temp is None:
+            st.error("Error processing file.")
+        else:
+            if not st.session_state.get(f"summary_{file.name}"):
+                st.session_state[f"summary_{file.name}"] = df_temp.describe().to_string()
+            st.write(f"**Renamed File:** {rename_mapping.get(file.name, file.name)}")
+            # AI Suggestion Button at the top for a single file
+            if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
+                with st.spinner("Generating suggestions...", show_time=True):
+                    data_summary = st.session_state.get(f"summary_{file.name}", "")
+                    if data_summary:
+                        suggestions = get_ai_suggestions(data_summary)
+                    else:
+                        suggestions = "No data summary available."
                 st.expander("AI Cleaning Suggestions", expanded=True).write(suggestions)
+            process_file(file, rename_mapping.get(file.name, file.name))
 
-        df = process_file(file)
 
+
+# Sidebar: Display Uploaded Files & Renaming Options
+with st.sidebar:
+    st.header("Uploaded Files")
+    if uploaded_files:
+        for file in uploaded_files:
+            # Skip files marked as removed
+            if st.session_state["removed_files"].get(file.name, False):
+                continue
+
+            key_base = sanitize_key(file.name)
+            # Set initial rename mode to False if not already set
+            if key_base not in st.session_state["rename_mode"]:
+                st.session_state["rename_mode"][key_base] = False
+
+            col1, col2, col3 = st.columns([3, 1, 1])
+            # If in renaming mode, show a text input and save button
+            if st.session_state["rename_mode"][key_base]:
+                new_name = col1.text_input("Rename", value=st.session_state["rename_mapping"].get(file.name, file.name), key=f"rename_input_{key_base}")
+                if col2.button("Save", key=f"save_{key_base}"):
+                    st.session_state["rename_mapping"][file.name] = new_name
+                    st.session_state["rename_mode"][key_base] = False
+                    st.success(f"Renamed to {new_name}")
+            else:
+                # Show file name and a pencil button to toggle renaming
+                col1.write(st.session_state["rename_mapping"].get(file.name, file.name))
+                if col2.button("✏️", key=f"rename_btn_{key_base}"):
+                    st.session_state["rename_mode"][key_base] = True
+
+            # Remove button: set the file as removed in session state and rerun the app
+            if col3.button("❌", key=f"remove_btn_{key_base}"):
+                st.session_state["removed_files"][file.name] = True
+                st.rerun()
+    else:
+        st.info("No files uploaded yet.")
+    
+    st.markdown("---")
+    st.markdown("### Developed by:")
+    st.markdown("**Name:** Owais Abdullah")
+    st.markdown("**Email:** mrowaisabdullah@gmail.com")
+    st.markdown("**LinkedIn:** [mrowaisabdullah](https://www.linkedin.com/in/mrowaisabdullah/)")
