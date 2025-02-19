@@ -9,7 +9,7 @@ def get_ai_suggestions(data_summary: str) -> str:
     """
     prompt = (
         f"Using the data summary below, provide clear, actionable, and detailed data cleaning recommendations. "
-        f"Focus on steps to remove duplicates, fill missing values, and improve overall data quality. "
+        f"Focus on steps to remove duplicates, fill missing values, and improve overall data quality. (don't give any technical or programming suggestions.)"
         f"Please provide a concise understandable response, under 300 words.\n\nData Summary:\n{data_summary}"
     )
     try:
