@@ -39,12 +39,6 @@ if uploaded_files:
                         else:
                             suggestions = "No data summary available."
                     
-                    # Display a truncated version if the suggestion is too long
-                    if len(suggestions) > 300:
-                        st.write(suggestions[:300] + "...")
-                        if st.checkbox("Show full suggestions", key=f"full_sugg_{sanitize_key(file.name)}"):
-                            st.write(suggestions)
-                    else:
                         st.write(suggestions)
 
     else:
