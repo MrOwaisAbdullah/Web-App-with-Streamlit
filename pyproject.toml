@@ -1,7 +1,7 @@
 [project]
 name = "web-app-with-streamlit"
 version = "0.1.0"
-description = "Add your description here"
+description = "A web app that helps users transform, clean, Filter, visualize data (CSV/Excel), and give AI-Powered Suggestions."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
