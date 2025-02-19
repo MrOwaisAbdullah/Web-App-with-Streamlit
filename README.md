@@ -13,7 +13,7 @@ Create a web app that helps users **transform, clean, Filter, visualize data (CS
 ## Features
 
 - **File Upload:**  
-  Upload CSV, Excel, JSON, or XML files. Duplicate files (by name) are automatically filtered.
+  Upload CSV, Excel, or JSON files. Duplicate files (by name) are automatically filtered.
 
 - **Data Cleaning Options:**  
   Remove duplicates and fill missing values with a single click.
@@ -25,7 +25,7 @@ Create a web app that helps users **transform, clean, Filter, visualize data (CS
   Choose between a default bar chart and custom Altair charts with interactive filtering widgets.
 
 - **Conversion Options:**  
-  Convert your data to CSV, Excel, JSON, or XML formats.
+  Convert your data to CSV, Excel, or JSON formats.
 
 - **AI-Powered Cleaning Suggestions:**  
   Generate clear, actionable data cleaning recommendations using the Gemini API.
