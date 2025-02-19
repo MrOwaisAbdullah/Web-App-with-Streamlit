@@ -3,6 +3,8 @@ import pandas as pd
 import streamlit as st
 from io import BytesIO
 import re
+import altair as alt
+
 
 def sanitize_key(file_name: str) -> str:
     # Replace any non-alphanumeric character with an underscore
@@ -16,7 +18,14 @@ def read_file(file):
         elif file_ext == ".xlsx":
             df = pd.read_excel(file)
         elif file_ext == ".json":
-            df = pd.read_json(file)
+            try:
+                df = pd.read_json(file)
+            except ValueError as e:
+                if "Trailing data" in str(e):
+                    df = pd.read_json(file, lines=True)
+                else:
+                    st.error(f"Error reading {file.name}: {e}")
+                    return None
         else:
             st.error(f"Unsupported file type: {file_ext}")
             return None
@@ -42,8 +51,12 @@ def process_file(file):
     st.write("**Preview the Data (Head):**")
     st.dataframe(df.head())
 
-    # Save summary to session_state for AI suggestions
-    st.session_state[f"summary_{file.name}"] = df.describe().to_string()
+    # Save summary to session_state for AI suggestions, if columns exist
+    if not df.columns.empty:
+        st.session_state[f"summary_{file.name}"] = df.describe().to_string()
+    else:
+        st.warning("The DataFrame has no columns to describe.")
+
 
     # Data Cleaning Options
     st.subheader("**🧹 Data Cleaning Options:**")
@@ -65,16 +78,40 @@ def process_file(file):
     if columns:
         df = df[columns]
 
-    # Visualization & Summary Options
-    st.subheader("**📊 Data Visualization & Summary:**")
-    if st.checkbox("Show Visualization", key=f"viz_{sanitize_key(file.name)}"):
+    # Parent container for Visualization and Filtering
+    st.subheader("**📊 Visualization & Data Filtering:**")
+    viz_mode = st.radio("Choose visualization mode:", ["Default Bar Chart", "Custom Chart & Filtering"], key=f"viz_mode_{sanitize_key(file.name)}")
+    
+    if viz_mode == "Default Bar Chart":
         try:
             st.bar_chart(df.select_dtypes(include='number').iloc[:, :2])
         except Exception as e:
-            st.error(f"Error creating chart: {e}")
-    with st.expander(f"Show Summary for {file.name}", expanded=False):
-        st.write("**Data Summary:**")
-        st.write(df.describe())
+            st.error(f"Error creating bar chart: {e}")
+    else:
+        # Custom Chart Section
+        numeric_columns = df.select_dtypes(include='number').columns.tolist()
+        if numeric_columns:
+            selected_col = st.selectbox("Select a numeric column for a custom line chart", numeric_columns, key=f"chart_{sanitize_key(file.name)}")
+            chart = alt.Chart(df.reset_index()).mark_line().encode(
+                x=alt.X("index:O", title="Row Index"),
+                y=alt.Y(f"{selected_col}:Q", title=selected_col)
+            ).interactive()
+            st.altair_chart(chart, use_container_width=True)
+        else:
+            st.write("No numeric columns available for custom charts.")
+        
+        # Data Filtering Section
+        with st.expander("Data Filtering Options"):
+            filters = {}
+            for col in numeric_columns:
+                min_val = float(df[col].min())
+                max_val = float(df[col].max())
+                filters[col] = st.slider(f"Filter {col}", min_value=min_val, max_value=max_val, value=(min_val, max_val), key=f"filter_{sanitize_key(col)}")
+            filtered_df = df.copy()
+            for col, (min_val, max_val) in filters.items():
+                filtered_df = filtered_df[(filtered_df[col] >= min_val) & (filtered_df[col] <= max_val)]
+            st.write("**Filtered Data Preview:**")
+            st.dataframe(filtered_df.head())
 
     # Conversion Options
     st.subheader("**🔄 Conversion Options:**")
