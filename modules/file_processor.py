@@ -33,6 +33,7 @@ def process_file(file):
     file_ext = os.path.splitext(file.name)[-1].lower()
 
     # Display file info
+    st.header("**📂 File Details:**")
     st.write(f"**File Name:** {file.name}")
     st.write(f"**File Type:** {file_ext}")
     st.write(f"**File Size:** {file.size/1024:.2f} KB")
@@ -71,7 +72,7 @@ def process_file(file):
             st.bar_chart(df.select_dtypes(include='number').iloc[:, :2])
         except Exception as e:
             st.error(f"Error creating chart: {e}")
-    if st.checkbox(f"Show Summary for {file.name}", key=f"summary_{sanitize_key(file.name)}"):
+    with st.expander(f"Show Summary for {file.name}", expanded=False):
         st.write("**Data Summary:**")
         st.write(df.describe())
 

@@ -22,14 +22,13 @@ uploaded_files = st.file_uploader(
 
 if uploaded_files:
     # Filter duplicate files by name
-    unique_files = {file.name: file for file in uploaded_files}.values()
+    unique_files = list({file.name: file for file in uploaded_files}.values())
     
     # If multiple files, create tabs, otherwise process directly
     if len(unique_files) > 1:
         tabs = st.tabs([file.name for file in unique_files])
         for tab, file in zip(tabs, unique_files):
             with tab:
-                df = process_file(file)
                 # Get AI suggestions if a summary is available
                 if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
                     with st.spinner("Generating suggestions...", show_time=True):
@@ -40,11 +39,16 @@ if uploaded_files:
                             suggestions = "No data summary available."
                     
                         st.expander("AI Cleaning Suggestions", expanded=True).write(suggestions)
+                df = process_file(file)
+
+
 
     else:
         file = list(unique_files)[0]
-        df = process_file(file)
         if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
             with st.spinner("Generating suggestions...", show_time=True):
                 suggestions = get_ai_suggestions(st.session_state[f"summary_{file.name}"])
                 st.expander("AI Cleaning Suggestions", expanded=True).write(suggestions)
+
+        df = process_file(file)
+
