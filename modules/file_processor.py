@@ -19,7 +19,7 @@ def read_file(file):
         return None
     try:
         if file_ext == ".csv":
-            file.seek(0)  # Reset file pointer
+            file.seek(0)
             # Try reading the CSV using a common encoding
             df = pd.read_csv(file, encoding="utf-8-sig", on_bad_lines='skip')
             # If no columns are found, try forcing header=None
@@ -131,7 +131,7 @@ def process_file(file, new_name):
         else:
             st.write("No numeric columns available for custom charts.")
 
-    # Data Filtering Section (now outside the viz_mode branches)
+    # Data Filtering Section
     with st.expander("Data Filtering Options"):
         if numeric_columns:
             filters = {}

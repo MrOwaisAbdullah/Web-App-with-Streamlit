@@ -4,8 +4,6 @@ from modules.file_processor import process_file, read_file
 from modules.ai_integration import get_ai_suggestions
 import re
 
-
-
 # Page Configuration
 st.set_page_config(page_title="AI Data Alchemist", page_icon="⚗️", layout="wide")
 st.markdown(
@@ -53,7 +51,7 @@ if uploaded_files:
         tabs = st.tabs([rename_mapping.get(file.name, file.name) for file in unique_files])
         for tab, file in zip(tabs, unique_files):
             with tab:
-                # --- Step 1: Compute Summary (without printing full details) ---
+                # Compute Summary
                 df_temp = read_file(file)
                 if df_temp is None:
                     st.error("Error processing file.")
@@ -62,7 +60,7 @@ if uploaded_files:
                     if not st.session_state.get(f"summary_{file.name}"):
                         st.session_state[f"summary_{file.name}"] = df_temp.describe().to_string()
                     
-                    # --- Step 2: Display AI Suggestion Button at the Top ---
+                    # Display AI Suggestion
                     if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
                         with st.spinner("Generating suggestions...", show_time=True):
                             data_summary = st.session_state.get(f"summary_{file.name}", "")
@@ -72,7 +70,7 @@ if uploaded_files:
                                 suggestions = "No data summary available."
                         st.expander("AI Cleaning Suggestions", expanded=True).write(suggestions)
                     
-                    # --- Step 3: Process the File Fully ---
+                    # Process the File Fully
                     process_file(file, rename_mapping.get(file.name, file.name))
     else:
         file = unique_files[0]
@@ -83,7 +81,7 @@ if uploaded_files:
             if not st.session_state.get(f"summary_{file.name}"):
                 st.session_state[f"summary_{file.name}"] = df_temp.describe().to_string()
             st.write(f"**Renamed File:** {rename_mapping.get(file.name, file.name)}")
-            # AI Suggestion Button at the top for a single file
+            # AI Suggestion Button
             if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
                 with st.spinner("Generating suggestions...", show_time=True):
                     data_summary = st.session_state.get(f"summary_{file.name}", "")
