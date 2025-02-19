@@ -62,10 +62,14 @@ def process_file(file):
     st.subheader("**🧹 Data Cleaning Options:**")
     if st.checkbox(f"Clean Data for {file.name}", key=f"clean_{sanitize_key(file.name)}"):
         col1, col2 = st.columns(2)
+
+        # Duplicates remove button
         with col1:
             if st.button(f"Remove duplicates from {file.name}", key=f"dup_{sanitize_key(file.name)}"):
                 df.drop_duplicates(inplace=True)
                 st.write("Duplicate data removed!")
+        
+        # Missing value filling Button
         with col2:
             if st.button(f"Fill Missing Values in {file.name}", key=f"fill_{sanitize_key(file.name)}"):
                 numeric_cols = df.select_dtypes(include=['number']).columns
@@ -118,14 +122,19 @@ def process_file(file):
     conversion_type = st.radio(f"Convert {file.name} to:", ["CSV", "Excel", "JSON"], key=f"conv_{sanitize_key(file.name)}")
     if st.button(f"Convert {file.name}", key=f"conv_btn_{sanitize_key(file.name)}"):
         buffer = BytesIO()
+        # Convert to CSV
         if conversion_type == "CSV":
             df.to_csv(buffer, index=False)
             new_file_name = file.name.replace(file_ext, ".csv")
             mime_type = "text/csv"
+
+        # Convert to Excel
         elif conversion_type == "Excel":
             df.to_excel(buffer, index=False)
             new_file_name = file.name.replace(file_ext, ".xlsx")
             mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+        # Convert to Json
         elif conversion_type == "JSON":
             json_str = df.to_json(orient='records', lines=True)
             buffer.write(json_str.encode('utf-8'))
@@ -135,6 +144,8 @@ def process_file(file):
             st.error("Unsupported conversion type")
             return
         buffer.seek(0)
+
+        # Download Button
         st.download_button(
             label=f"⏬ Download {file.name} as {conversion_type}",
             data=buffer,
