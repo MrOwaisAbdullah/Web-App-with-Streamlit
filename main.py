@@ -3,7 +3,6 @@ import streamlit as st
 from modules.file_processor import process_file
 from modules.ai_integration import get_ai_suggestions
 import re
-import time
 
 # App configuration
 st.set_page_config(page_title="AI Data Alchemist", page_icon="⚗️", layout="wide")
@@ -34,8 +33,6 @@ if uploaded_files:
                 # Get AI suggestions if a summary is available
                 if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
                     with st.spinner("Generating suggestions...", show_time=True):
-                        # Simulate delay for testing (remove or adjust later)
-                        time.sleep(2)
                         data_summary = st.session_state.get(f"summary_{file.name}", "")
                         if data_summary:
                             suggestions = get_ai_suggestions(data_summary)
@@ -53,6 +50,7 @@ if uploaded_files:
     else:
         file = list(unique_files)[0]
         df = process_file(file)
-        if st.button("Get AI Cleaning Suggestions", key=f"sugg_{file.name}") and st.session_state.get(f"summary_{file.name}"):
-            suggestions = get_ai_suggestions(st.session_state[f"summary_{file.name}"])
-            st.expander("AI Cleaning Suggestions").write(suggestions)
+        if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{file.name}") and st.session_state.get(f"summary_{file.name}"):
+            with st.spinner("Generating suggestions...", show_time=True):
+                suggestions = get_ai_suggestions(st.session_state[f"summary_{file.name}"])
+                st.expander("AI Cleaning Suggestions").write(suggestions)
