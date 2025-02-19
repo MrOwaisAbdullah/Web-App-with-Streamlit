@@ -98,6 +98,10 @@ if uploaded_files:
 
 # Sidebar: Display Uploaded Files & Renaming Options
 with st.sidebar:
+    st.markdown(
+    "<h1 style='text-align: center;'>⚗️ AI Data Alchemist</h1>",
+    unsafe_allow_html=True
+    )
     st.header("Uploaded Files")
     if uploaded_files:
         for file in uploaded_files:
