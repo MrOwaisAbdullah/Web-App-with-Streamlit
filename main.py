@@ -27,13 +27,59 @@ if "rename_mode" not in st.session_state or not isinstance(st.session_state["ren
 def sanitize_key(file_name: str) -> str:
     return re.sub(r'\W+', '_', file_name)
 
-# File uploader with multiple file support
-uploaded_files = st.file_uploader(
-    "Upload your file (CSV, Excel, JSON)",
-    type=["csv", "xlsx", "json"],
-    accept_multiple_files=True
-)
+# Sidebar: Display Uploaded Files & Renaming Options
+with st.sidebar:
+    st.markdown(
+    "<h1 style='text-align: center;'>⚗️ AI Data Alchemist</h1>",
+    unsafe_allow_html=True
+    )
 
+    # File uploader with multiple file support
+    uploaded_files = st.file_uploader(
+        "Upload your file (CSV, Excel, JSON)",
+        type=["csv", "xlsx", "json"],
+        accept_multiple_files=True
+    )
+    st.header("Uploaded Files")
+    if uploaded_files:
+        for file in uploaded_files:
+            # Skip files marked as removed
+            if st.session_state["removed_files"].get(file.name, False):
+                continue
+
+            key_base = sanitize_key(file.name)
+            # Set initial rename mode to False if not already set
+            if key_base not in st.session_state["rename_mode"]:
+                st.session_state["rename_mode"][key_base] = False
+
+            col1, col2, col3 = st.columns([3, 1, 1])
+            # If in renaming mode, show a text input and save button
+            if st.session_state["rename_mode"][key_base]:
+                new_name = col1.text_input("Rename", value=st.session_state["rename_mapping"].get(file.name, file.name), key=f"rename_input_{key_base}")
+                if col2.button("Save", key=f"save_{key_base}"):
+                    st.session_state["rename_mapping"][file.name] = new_name
+                    st.session_state["rename_mode"][key_base] = False
+                    st.success(f"Renamed to {new_name}")
+            else:
+                # Show file name and a pencil button to toggle renaming
+                col1.write(st.session_state["rename_mapping"].get(file.name, file.name))
+                if col2.button("✏️", key=f"rename_btn_{key_base}"):
+                    st.session_state["rename_mode"][key_base] = True
+
+            # Remove button: set the file as removed in session state and rerun the app
+            if col3.button("❌", key=f"remove_btn_{key_base}"):
+                st.session_state["removed_files"][file.name] = True
+                st.rerun()
+    else:
+        st.info("No files uploaded yet.")
+    
+    st.markdown("---")
+    st.markdown("### Developed with ❤️ by **Owais Abdullah**")
+    st.markdown("**Email:** mrowaisabdullah@gmail.com")
+    st.markdown("**LinkedIn:** [@mrowaisabdullah](https://www.linkedin.com/in/mrowaisabdullah/)")
+
+
+# Main Section: Process Uploaded Files
 if uploaded_files:
     # Filter out removed files using session_state
     unique_files = list({
@@ -91,50 +137,9 @@ if uploaded_files:
                         suggestions = "No data summary available."
                 st.expander("AI Cleaning Suggestions", expanded=True).write(suggestions)
             process_file(file, rename_mapping.get(file.name, file.name))
-
-
-
-# Sidebar: Display Uploaded Files & Renaming Options
-with st.sidebar:
+else:
     st.markdown(
-    "<h1 style='text-align: center;'>⚗️ AI Data Alchemist</h1>",
+    "<p style='text-align: center; background-color: rgba(46, 204, 113, 0.3); padding: 10px; border-radius: 5px;'>Please upload a file to get started.</p>",
     unsafe_allow_html=True
     )
-    st.header("Uploaded Files")
-    if uploaded_files:
-        for file in uploaded_files:
-            # Skip files marked as removed
-            if st.session_state["removed_files"].get(file.name, False):
-                continue
 
-            key_base = sanitize_key(file.name)
-            # Set initial rename mode to False if not already set
-            if key_base not in st.session_state["rename_mode"]:
-                st.session_state["rename_mode"][key_base] = False
-
-            col1, col2, col3 = st.columns([3, 1, 1])
-            # If in renaming mode, show a text input and save button
-            if st.session_state["rename_mode"][key_base]:
-                new_name = col1.text_input("Rename", value=st.session_state["rename_mapping"].get(file.name, file.name), key=f"rename_input_{key_base}")
-                if col2.button("Save", key=f"save_{key_base}"):
-                    st.session_state["rename_mapping"][file.name] = new_name
-                    st.session_state["rename_mode"][key_base] = False
-                    st.success(f"Renamed to {new_name}")
-            else:
-                # Show file name and a pencil button to toggle renaming
-                col1.write(st.session_state["rename_mapping"].get(file.name, file.name))
-                if col2.button("✏️", key=f"rename_btn_{key_base}"):
-                    st.session_state["rename_mode"][key_base] = True
-
-            # Remove button: set the file as removed in session state and rerun the app
-            if col3.button("❌", key=f"remove_btn_{key_base}"):
-                st.session_state["removed_files"][file.name] = True
-                st.rerun()
-    else:
-        st.info("No files uploaded yet.")
-    
-    st.markdown("---")
-    st.markdown("### Developed by:")
-    st.markdown("**Name:** Owais Abdullah")
-    st.markdown("**Email:** mrowaisabdullah@gmail.com")
-    st.markdown("**LinkedIn:** [@mrowaisabdullah](https://www.linkedin.com/in/mrowaisabdullah/)")

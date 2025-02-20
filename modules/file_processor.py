@@ -65,8 +65,8 @@ def process_file(file, new_name):
     st.write(f"**File Size:** {file.size/1024:.2f} KB")
     st.write(f"**Number of Rows:** {df.shape[0]}")
     st.write(f"**Number of Columns:** {df.shape[1]}")
-    st.write("**Preview the Data (Head):**")
-    st.dataframe(df.head())
+    st.write("**Data Preview:**")
+    st.dataframe(df)
 
     st.session_state[f"summary_{file.name}"] = df.describe().to_string()
 
@@ -131,31 +131,31 @@ def process_file(file, new_name):
         else:
             st.write("No numeric columns available for custom charts.")
 
-    # Data Filtering Section
-    with st.expander("Data Filtering Options"):
-        if numeric_columns:
-            filters = {}
-            for col in numeric_columns:
-                min_val = float(df[col].min())
-                max_val = float(df[col].max())
-                if min_val == max_val:
-                    st.write(f"{col}: Single value {min_val} (No filtering needed)")
-                    filters[col] = (min_val, max_val)
-                else:
-                    filters[col] = st.slider(
-                        f"Filter {col}",
-                        min_value=min_val,
-                        max_value=max_val,
-                        value=(min_val, max_val),
-                        key=f"filter_{sanitize_key(file.name)}_{sanitize_key(col)}"
-                    )
-            filtered_df = df.copy()
-            for col, (min_val, max_val) in filters.items():
-                filtered_df = filtered_df[(filtered_df[col] >= min_val) & (filtered_df[col] <= max_val)]
-            st.write("**Filtered Data Preview:**")
-            st.dataframe(filtered_df.head())
-        else:
-            st.write("No numeric columns available for filtering.")
+        # Data Filtering Section
+        with st.expander("Data Filtering Options"):
+            if numeric_columns:
+                filters = {}
+                for col in numeric_columns:
+                    min_val = float(df[col].min())
+                    max_val = float(df[col].max())
+                    if min_val == max_val:
+                        st.write(f"{col}: Single value {min_val} (No filtering needed)")
+                        filters[col] = (min_val, max_val)
+                    else:
+                        filters[col] = st.slider(
+                            f"Filter {col}",
+                            min_value=min_val,
+                            max_value=max_val,
+                            value=(min_val, max_val),
+                            key=f"filter_{sanitize_key(file.name)}_{sanitize_key(col)}"
+                        )
+                filtered_df = df.copy()
+                for col, (min_val, max_val) in filters.items():
+                    filtered_df = filtered_df[(filtered_df[col] >= min_val) & (filtered_df[col] <= max_val)]
+                st.write("**Filtered Data Preview:**")
+                st.dataframe(filtered_df.head())
+            else:
+                st.write("No numeric columns available for filtering.")
 
 
     # Conversion Options
