@@ -59,12 +59,18 @@ def process_file(file, new_name):
     
     file_ext = os.path.splitext(file.name)[-1].lower()
 
-    # Use the renamed file for display
-    st.write(f"**File Name:** {new_name}")
-    st.write(f"**File Type:** {file_ext}")
-    st.write(f"**File Size:** {file.size/1024:.2f} KB")
-    st.write(f"**Number of Rows:** {df.shape[0]}")
-    st.write(f"**Number of Columns:** {df.shape[1]}")
+
+    # file details
+    st.write(f"**📄 File Name:** {new_name}")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.write(f"**📂 File Type:** {file_ext}")
+    with col2:
+        st.write(f"**📐 File Size:** {file.size/1024:.2f} KB")
+    with col3:
+        st.write(f"**🈸 Rows & Columns:** {df.shape[0]} x {df.shape[1]}")
+
     st.write("**Data Preview:**")
     st.dataframe(df)
 
@@ -80,16 +86,16 @@ def process_file(file, new_name):
     # Data Cleaning Options
     st.subheader("**🧹 Data Cleaning Options:**")
     if st.checkbox(f"Clean Data for {file.name}", key=f"clean_{sanitize_key(file.name)}"):
-        col1, col2 = st.columns(2)
+        col4, col5 = st.columns(2)
 
         # Duplicates remove button
-        with col1:
+        with col4:
             if st.button(f"Remove duplicates from {file.name}", key=f"dup_{sanitize_key(file.name)}"):
                 df.drop_duplicates(inplace=True)
                 st.write("Duplicate data removed!")
         
         # Missing value filling Button
-        with col2:
+        with col5:
             if st.button(f"Fill Missing Values in {file.name}", key=f"fill_{sanitize_key(file.name)}"):
                 numeric_cols = df.select_dtypes(include=['number']).columns
                 df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())

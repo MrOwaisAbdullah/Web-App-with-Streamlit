@@ -8,11 +8,11 @@ st.set_page_config(page_title="AI Data Alchemist", page_icon="⚗️", layout="w
 st.markdown(
     "<h1 style='text-align: center;'>⚗️ AI Data Alchemist \n\n Clean, Transform & Visualize Your Data</h1>",
     unsafe_allow_html=True
-)
+    )
 st.markdown(
     "<p style='text-align: center;'>Transform your files between CSV, Excel, and JSON formats with built-in cleaning, visualization, and AI-powered suggestions.</p>",
     unsafe_allow_html=True
-)
+    )
 
 # Initialize Session State for Renaming and Removed Files
 if "rename_mapping" not in st.session_state or not isinstance(st.session_state["rename_mapping"], dict):
@@ -51,7 +51,7 @@ with st.sidebar:
             if key_base not in st.session_state["rename_mode"]:
                 st.session_state["rename_mode"][key_base] = False
 
-            col1, col2, col3 = st.columns([3, 1, 1])
+            col1, col2 = st.columns([3, 1])
             # If in renaming mode, show a text input and save button
             if st.session_state["rename_mode"][key_base]:
                 new_name = col1.text_input("Rename", value=st.session_state["rename_mapping"].get(file.name, file.name), key=f"rename_input_{key_base}")
@@ -65,10 +65,6 @@ with st.sidebar:
                 if col2.button("✏️", key=f"rename_btn_{key_base}"):
                     st.session_state["rename_mode"][key_base] = True
 
-            # Remove button: set the file as removed in session state and rerun the app
-            if col3.button("❌", key=f"remove_btn_{key_base}"):
-                st.session_state["removed_files"][file.name] = True
-                st.rerun()
     else:
         st.info("No files uploaded yet.")
     
@@ -125,7 +121,6 @@ if uploaded_files:
         else:
             if not st.session_state.get(f"summary_{file.name}"):
                 st.session_state[f"summary_{file.name}"] = df_temp.describe().to_string()
-            st.write(f"**Renamed File:** {rename_mapping.get(file.name, file.name)}")
             # AI Suggestion Button
             if st.button("🤖 Get AI Cleaning Suggestions", key=f"sugg_{sanitize_key(file.name)}"):
                 with st.spinner("Generating suggestions...", show_time=True):
