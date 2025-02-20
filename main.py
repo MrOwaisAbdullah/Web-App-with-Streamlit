@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from modules.file_processor import process_file, read_file
 from modules.ai_integration import get_ai_suggestions
@@ -27,7 +26,7 @@ if "rename_mode" not in st.session_state or not isinstance(st.session_state["ren
 def sanitize_key(file_name: str) -> str:
     return re.sub(r'\W+', '_', file_name)
 
-# Sidebar: Display Uploaded Files & Renaming Options
+# Sidebar: Upload & Display Uploaded Files & Renaming Options
 with st.sidebar:
     st.markdown(
     "<h1 style='text-align: center;'>⚗️ AI Data Alchemist</h1>",

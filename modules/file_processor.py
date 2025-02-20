@@ -46,7 +46,7 @@ def read_file(file):
         else:
             st.error(f"Unsupported file type: {file_ext}")
             return None
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         st.error(f"Error reading {file.name}: {e}")
         return None
     return df
@@ -114,7 +114,7 @@ def process_file(file, new_name):
     if viz_mode == "Default Bar Chart":
         try:
             st.bar_chart(df.select_dtypes(include='number').iloc[:, :2])
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             st.error(f"Error creating bar chart: {e}")
     else:
         if numeric_columns:
