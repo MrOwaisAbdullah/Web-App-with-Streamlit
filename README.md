@@ -8,7 +8,7 @@ Data Alchemist is a Streamlit web app designed to help you upload, clean, visual
 ## 📌 Project Overview  
 
 ### **Purpose:**  
-Create a web app that helps users **transform, clean, Filter, visualize data (CSV/Excel), and give AI-Powered Suggestions**.
+A web app that helps users **transform, clean, Filter, visualize data (CSV/Excel), and give AI-Powered Suggestions**.
 
 ## Features
 
